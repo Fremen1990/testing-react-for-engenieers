@@ -1,8 +1,9 @@
 import React from 'react'
-import { axe } from 'jest-axe'
-import { render, fireEvent } from '@testing-library/react'
+import {axe} from 'jest-axe'
+import {render, fireEvent} from '@testing-library/react'
 
 import Checkbox from '../../../components/Checkbox'
+import {doc} from "prettier";
 
 /**
  * This checkbox component renders a checkbox with a label.
@@ -11,13 +12,41 @@ import Checkbox from '../../../components/Checkbox'
  * should.
  */
 describe('The <Checkbox /> component', () => {
-  it('❌ Should render the label and checkbox the user will see', () => {})
 
-  it('❌ Should make the checkbox accessible by setting the id and htmlFor attributes on label and checkbox', () => {})
+    const defaultCheckboxProps = {
+        label: 'TEST_CHECKBOX_LABEL',
+        id: 'TEST_CHECKBOX_ID',
+        background: '#000',
+        checkMarkBackground: '#fff',
+        onChange: jest.fn(),
+        checked: false,
+    }
 
-  it('❌ Should call the onChange handler when it is provided', () => {})
+    const setupCheckbox = () => render(<Checkbox {...defaultCheckboxProps} />)
 
-  it('❌ Should change state correctly when clicked (checked and unchecked)', () => {})
+    it('❌ Should render the label and checkbox the user will see', () => {
+        const {getByLabelText, debug} = render(<Checkbox {...defaultCheckboxProps} />)
+        expect(getByLabelText(defaultCheckboxProps.label)).toBeInTheDocument()
 
-  it('❌ should not fail any accessibility tests', async () => {})
+        debug(getByLabelText(defaultCheckboxProps.label))
+    })
+
+
+    it('❌ Should make the checkbox accessible by setting the id and htmlFor attributes on label and checkbox', () => {
+        const {asFragment} = setupCheckbox()
+
+        // console.log(asFragment())
+        expect(asFragment()).toMatchSnapshot()
+    })
+
+    // TODO: 5. Fire native events on elements
+
+    it('❌ Should call the onChange handler when it is provided', () => {
+    })
+
+    it('❌ Should change state correctly when clicked (checked and unchecked)', () => {
+    })
+
+    it('❌ should not fail any accessibility tests', async () => {
+    })
 })
