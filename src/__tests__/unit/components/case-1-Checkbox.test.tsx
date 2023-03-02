@@ -22,7 +22,7 @@ describe('The <Checkbox /> component', () => {
         checked: false,
     }
 
-    const setupCheckbox = () => render(<Checkbox {...defaultCheckboxProps} />)
+    const setupCheckbox = (props = defaultCheckboxProps) => render(<Checkbox {...props} />)
 
     it('❌ Should render the label and checkbox the user will see', () => {
         const {getByLabelText, debug} = render(<Checkbox {...defaultCheckboxProps} />)
@@ -39,14 +39,29 @@ describe('The <Checkbox /> component', () => {
         expect(asFragment()).toMatchSnapshot()
     })
 
-    // TODO: 5. Fire native events on elements
 
     it('❌ Should call the onChange handler when it is provided', () => {
+        const {getByLabelText} = setupCheckbox()
+
+        const checkbox = getByLabelText(defaultCheckboxProps.label)
+
+        fireEvent.click(checkbox)
+
+        expect(defaultCheckboxProps.onChange).toHaveBeenCalled()
     })
 
     it('❌ Should change state correctly when clicked (checked and unchecked)', () => {
+        const {getByLabelText} = setupCheckbox({
+            ...defaultCheckboxProps,
+            checked: true,
+        })
+        const checkbox = getByLabelText(defaultCheckboxProps.label)
+        expect(checkbox).toBeChecked()
     })
 
     it('❌ should not fail any accessibility tests', async () => {
+        const {container} = setupCheckbox();
+
+        expect(await axe(container)).toHaveNoViolations()
     })
 })
