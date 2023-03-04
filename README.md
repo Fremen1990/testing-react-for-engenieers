@@ -1,6 +1,6 @@
 # The React Testing Masterclass
 
-Test gitmoji commit !
+Test gitmoji commit !!
 
 Hi there 👋. My name is [Kati Frantz](https://katifrantz.com) and this is source material for [The React Testing Masterclass](https://testingreact.katifrantz.com). Thank you very much for visiting this repository. If you haven't joined the course yet, please visit [Testing react](https://testingreact.katifrantz.com) to enrol for free.
 
