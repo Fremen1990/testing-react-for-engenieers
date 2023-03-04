@@ -10,8 +10,6 @@
 
 # production
 /build
-/dist/**/*
-.idea
 
 # misc
 .DS_Store
@@ -25,3 +23,4 @@ yarn-debug.log*
 yarn-error.log*
 .cache
 coverage/
+dist/

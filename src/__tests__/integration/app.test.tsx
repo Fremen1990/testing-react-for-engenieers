@@ -1,55 +1,44 @@
 import React from 'react'
 import {Axios} from '../../helpers/axios'
-import {render, fireEvent, act, waitFor, getByText, getByTestId} from '@testing-library/react'
+import {render, fireEvent, act, waitFor, findAllByTestId, getByText} from '@testing-library/react'
 import {Provider as StoreProvider} from 'react-redux'
-import {build, fake} from '@jackfranklin/test-data-bot'
+import {productBuilder} from '../utils'
 
 import App from '../../components/App'
 import {createStore} from '../../store'
 import {FiltersWrapper} from '../../components/FiltersWrapper'
 
 
+import {MemoryRouter} from "react-router-dom";
+
 jest.mock('../../helpers/axios')
 
-const mockAxios = Axios as jest.Mocked<typeof Axios>
-
-const productBuilder = build('Product', {
-    fields: {
-        id: fake((f) => f.random.number()),
-        name: fake((f) => f.commerce.productName()),
-        image: fake((f) => f.image.imageUrl()),
-        price: fake((f) => `from ${f.random.number(100)}`),
-    }
-})
+const mockAxios = Axios as any
 
 describe('The app ', () => {
     const setupApp = () =>
         render(
             <StoreProvider store={createStore()}>
-                <FiltersWrapper>
-                    <App/>
-                </FiltersWrapper>
-            </StoreProvider>
+                <MemoryRouter>
+                    <FiltersWrapper>
+                        <App/>
+                    </FiltersWrapper>
+                </MemoryRouter>
+            </StoreProvider>,
         )
 
     afterEach(() => jest.clearAllMocks())
 
-    test('❌ it fetches and renders all products on the page', async () => {
-        mockAxios.get.mockResolvedValueOnce({
-            data: [productBuilder(),
-                productBuilder()]
+    test('it fetches and renders all products on the page', async () => {
+        mockAxios.get.mockResolvedValue({
+            data: [productBuilder(), productBuilder()],
         })
-
         const {findAllByTestId} = setupApp()
+
         expect(await findAllByTestId('ProductTile')).toHaveLength(2)
     })
 
-    test('❌ it can open and close the filters panel', async () => {
-        mockAxios.get.mockResolvedValueOnce({
-            data: [productBuilder(),
-                productBuilder()]
-        })
-
+    test('it can open and close the filters panel', async () => {
         const {getByText, queryByText} = setupApp()
 
         const filterButton = getByText(/filter/i)
@@ -66,32 +55,84 @@ describe('The app ', () => {
         expect(queryByText(/view results/i)).not.toBeInTheDocument()
     })
 
-    test('❌ it can search products as user types in the search field', async () => {
+    test('it can search products as user types in the search field', async () => {
         jest.useFakeTimers()
+        mockAxios.get
+            .mockResolvedValueOnce({
+                data: [
+                    productBuilder(),
+                    productBuilder(),
+                    productBuilder(),
+                    productBuilder(),
+                    productBuilder(),
+                ],
+            })
+            .mockResolvedValueOnce({
+                data: [productBuilder(), productBuilder()],
+            })
+        const {findAllByTestId, getByText, getByPlaceholderText} = setupApp()
 
-        mockAxios.get.mockResolvedValueOnce({
-            data: [productBuilder(),
-                productBuilder(), productBuilder(), productBuilder(), productBuilder()]
-        }).mockResolvedValueOnce([productBuilder(), productBuilder()])
+        expect(await findAllByTestId('ProductTile')).toHaveLength(2)
 
-        const {getByText, getByTestId, findAllByTestId, getByPlaceholderText, debug} = setupApp()
+        fireEvent.click(getByText(/filter/i))
 
-        const filterButton = getByTestId("FilterButton")
-        fireEvent.click(filterButton)
-        const searchBox = getByPlaceholderText("largo")
+        const searchBox = getByPlaceholderText(/largo/i)
 
+        fireEvent.change(searchBox, {
+            target: {
+                value: 'searching',
+            },
+        })
+
+        act(() => {
+            jest.runAllTimers()
+        })
+
+        await waitFor(() => expect(mockAxios.get).toHaveBeenCalledTimes(3))
+
+        expect(await findAllByTestId('ProductTile')).toHaveLength(2)
+    })
+
+    test('❌it can navigate to the single product page', async () => {
+        const product = productBuilder()
+
+        mockAxios.get.mockImplementation((url: string) => {
+            console.log(url)
+            return new Promise((resolve) => {
+
+                if (url === `/products/${product.id}`) {
+
+                    return resolve({
+                        data: [product],
+                    })
+                }
+
+                return resolve({
+                    data: [product]
+                })
+            })
+        })
+        const {debug, findByTestId, findByText} = setupApp()
+
+        // debug(await findByTestId('ProductTileLink'))
+
+        fireEvent.click(await findByTestId('ProductTileLink'))
         // debug()
-        fireEvent.change(searchBox, {target: {value: 'searching'}})
 
-        // act(() => {
-        //     jest.runAllTimers()
-        // })
-        //
-        // await waitFor(() => {
-        //     expect(mockAxios.get).toHaveBeenCalledTimes(2)
-        // })
+        await waitFor(() => expect(mockAxios.get).toHaveBeenCalledTimes(3))
+        // debug()
 
-        expect(await findAllByTestId('ProductTile')).toHaveLength(5)
+        // expect(await findByText(product.price)).toBeInTheDocument()
 
+    })
+
+
+    test('❌it can add a product to cart', async () => {
+    })
+
+    test('❌it can remove a product from cart', async () => {
+    })
+
+    test('❌it can go through and complete the checkout flow', async () => {
     })
 })
